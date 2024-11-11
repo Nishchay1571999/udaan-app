@@ -1,70 +1,210 @@
-import { Image, StyleSheet, Platform } from 'react-native';
+import { Dimensions, FlatList, Modal, Pressable, StyleSheet, Text, View } from 'react-native'
+import React, { useState } from 'react'
+import Header from '@/components/Home/Header'
+import Create from '@/components/Home/Create'
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
+import axios from 'axios'
+import { TextInput } from 'react-native-gesture-handler'
+const DATA = [
+  {
+    name: "Joe Belfiore",
+    status: "In a world far away"
+  },
+  {
+    name: "Bill Gates",
+    status: "In a world far away"
+  }, {
+    name: "Mark Zuckerberg",
+    status: "In a world far away"
+  }, {
+    name: "Maricca Mayer",
+    status: "In a world far away"
+  },
+  {
+    name: "Sundar Pichai",
+    status: "In a world far away"
+  },
+  {
+    name: "Elon Mush",
+    status: "In a world far away"
+  },
+  {
+    name: "Dave",
+    status: "In a world far away"
+  }, {
+    name: "Bhavesh",
+    status: "In a world far away"
+  }, {
+    name: "Aman Gupta",
+    status: "In a world far away"
+  },
+  {
+    name: "Anupam Mittal",
+    status: "In a world far away"
+  }, {
+    name: "HYcj s",
+    status: "In a world far away"
+  },
+  {
+    name: "Hjcxbash",
+    status: "In a world far away"
+  }, {
+    name: "ciihge",
+    status: "In a world far away"
+  }, {
+    name: "bchdsf",
+    status: "In a world far away"
+  },
+  {
+    name: "xbhsahu",
+    status: "In a world far away"
+  },
+  {
+    name: "bdshdqqd",
+    status: "In a world far away"
+  },
+  {
+    name: "bhsba",
+    status: "In a world far away"
+  }, {
+    name: "cuidns",
+    status: "In a world far away"
+  }, {
+    name: "JKnsk",
+    status: "In a world far away"
+  },
+  {
+    name: "bjksnl",
+    status: "In a world far away"
+  }
+]
+const Home = () => {
+  const [searchText, setSearchText] = useState<string>('')
+  const [offset, setOffset] = useState<number>(0)
+  const [data, setData] = useState<typeof DATA>(DATA.slice(0, 5))
+  const [createNew, setCreateNew] = useState<boolean>(false)
+  const [newName, setNewName] = useState('')
+  const [newStatus, setNewStatus] = useState('')
+  const getNextPage = () => {
+    console.log({ offset })
+    setTimeout(() => {
+      setOffset(previous => previous + 1)
+      setData(previous => previous.concat(DATA.slice((offset + 1) * 5, (offset + 1) * 5 + 5)))
+      console.log("SET TIME OUT COMPLETED")
+    }, 2000)
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
-
-export default function HomeScreen() {
+  }
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({ ios: 'cmd + d', android: 'cmd + m' })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
-  );
+    <View style={styles.container}>
+      <Header title='Contacts' searchText={searchText} setSearchText={setSearchText} />
+      <FlatList
+        data={data.filter((item) => {
+          if (searchText === "") {
+            return item
+          } else {
+            if (item.name.toLocaleLowerCase().includes(searchText.toLocaleLowerCase())) {
+              return item
+            } else {
+              return undefined
+            }
+          }
+        })}
+        onEndReached={() => {
+          console.log("END REACHED")
+          getNextPage()
+        }}
+        ListFooterComponent={() => {
+          return <Text>{'Loading'}</Text>
+        }}
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.listContainerStyles}
+        renderItem={({ item, index }) => {
+          return (
+            <View style={styles.contactContainer}>
+              <View style={styles.imageContainer}>
+              </View>
+              <View>
+                <Text>{item.name}</Text>
+                <Text>{item.status}</Text>
+              </View>
+            </View>
+          )
+        }} />
+      <View style={styles.createContactsContainer}>
+        <Create createNew={createNew} setCreateNew={setCreateNew} />
+
+      </View>
+      <Modal visible={createNew} transparent={true}>
+        <View style={styles.createContainer}>
+          <View>
+            <TextInput value={newName} onChangeText={setNewName} placeholder='Name' placeholderTextColor="grey" />
+          </View>
+          <View>
+            <TextInput value={newStatus} onChangeText={setNewStatus} placeholder='Status' placeholderTextColor="grey" />
+          </View>
+          <Pressable style={styles.submitButton} onPress={() => {
+            if (newName !== "" && newStatus !== "") {
+              setData(previous => previous.concat({ name: newName, status: newStatus }))
+            }
+            setCreateNew(!createNew)
+          }}>
+            <Text>{'Submit'}</Text>
+          </Pressable>
+        </View>
+      </Modal>
+    </View>
+  )
 }
 
+export default Home
+
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  container: {
+    flex: 1,
+    backgroundColor: "white"
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  listContainerStyles: {
+    paddingHorizontal: 20,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
+  contactContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-start",
+    marginVertical: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 5,
+    padding: 5,
+    borderRadius: 10
+  },
+  imageContainer: {
+    height: 50,
+    width: 50,
+    borderRadius: 25,
+    backgroundColor: "pink",
+    marginRight: 20
+  },
+  createContactsContainer: {
+    position: "absolute",
     bottom: 0,
-    left: 0,
-    position: 'absolute',
+    right: 0,
+
   },
-});
+  createContainer: {
+    width: Dimensions.get("screen").width,
+    height: Dimensions.get("screen").height / 2,
+    backgroundColor: "white",
+    position: "absolute",
+    bottom: 0
+  },
+  submitButton: {
+    width: "100%",
+    paddingVertical: 20,
+    backgroundColor: "orange",
+    borderRadius: 10,
+    justifyContent: "center",
+    alignItems: "center"
+  }
+})
